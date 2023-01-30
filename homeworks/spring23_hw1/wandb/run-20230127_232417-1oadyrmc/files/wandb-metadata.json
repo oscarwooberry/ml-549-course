@@ -1,0 +1,42 @@
+{
+    "os": "Darwin-22.1.0-x86_64-i386-64bit",
+    "python": "3.7.13",
+    "heartbeatAt": "2023-01-28T04:24:18.304008",
+    "startedAt": "2023-01-28T04:24:17.784936",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "hw1_cifar10_tf.py",
+    "codePath": "homeworks/spring23_hw1/hw1_cifar10_tf.py",
+    "git": {
+        "remote": "git@github.com:oscarwooberry/ml-549-course.git",
+        "commit": "3da699b1348280f8ef32763d7b8d6c3a8cb665f8"
+    },
+    "email": "yiw445@ucsd.edu",
+    "root": "/Users/oscarwooberry/Desktop/ml-549-course",
+    "host": "oscars-MacBook-Pro-2.local",
+    "username": "oscarwooberry",
+    "executable": "/Users/oscarwooberry/opt/anaconda3/envs/pytorch/bin/python",
+    "cpu_count": 8,
+    "cpu_count_logical": 16,
+    "cpu_freq": {
+        "current": 2300,
+        "min": 2300,
+        "max": 2300
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2300,
+            "min": 2300,
+            "max": 2300
+        }
+    ],
+    "disk": {
+        "total": 931.546989440918,
+        "used": 326.31494140625
+    },
+    "memory": {
+        "total": 32.0
+    }
+}

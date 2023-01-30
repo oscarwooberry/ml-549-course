@@ -21,6 +21,7 @@ from keras import layers
 import tensorflow_datasets as tfds
 from matplotlib import pyplot as plt
 
+#from gluoncv.model_zoo import get_model
 
 
 if __name__ == '__main__':
@@ -30,8 +31,8 @@ if __name__ == '__main__':
     wandb.init(
         project="hw1_spring2023",  # Leave this as 'hw1_spring2023'
         entity="bu-spark-ml",  # Leave this
-        group="<your_BU_username>",  # <<<<<<< Put your BU username here
-        notes="Minimal model"  # <<<<<<< You can put a short note here
+        group="yiw445",  # <<<<<<< Put your BU username here
+        notes="cnn"  # <<<<<<< You can put a short note here
     )
 
     """
@@ -68,12 +69,12 @@ if __name__ == '__main__':
     ds_cifar10_train = ds_cifar10_train.map(normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
     ds_cifar10_train = ds_cifar10_train.cache()     # Cache data
     ds_cifar10_train = ds_cifar10_train.shuffle(ds_cifar10_info.splits['train'].num_examples)
-    ds_cifar10_train = ds_cifar10_train.batch(32)  # <<<<< To change batch size, you have to change it here
+    ds_cifar10_train = ds_cifar10_train.batch(64)  # <<<<< To change batch size, you have to change it here
     ds_cifar10_train = ds_cifar10_train.prefetch(tf.data.AUTOTUNE)
 
     # Prepare cifar10 test dataset
     ds_cifar10_test = ds_cifar10_test.map(normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
-    ds_cifar10_test = ds_cifar10_test.batch(32)    # <<<<< To change batch size, you have to change it here
+    ds_cifar10_test = ds_cifar10_test.batch(64)    # <<<<< To change batch size, you have to change it here
     ds_cifar10_test = ds_cifar10_test.cache()
     ds_cifar10_test = ds_cifar10_test.prefetch(tf.data.AUTOTUNE)
 
@@ -83,35 +84,88 @@ if __name__ == '__main__':
         #####################################
         # Edit code here -- Update the model definition
         # You will need a dense last layer with 10 output channels to classify the 10 classes
-        # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-        layers.Flatten(),
-        layers.Dense(128, activation='relu'),
-        # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        tf.keras.layers.Dense(10)
-    ])
+        # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv 
+	layers.Conv2D(64, (3, 3), strides=(1,1), padding='same', activation='gelu'),
+	layers.Conv2D(64, (3, 3), strides=(1,1), padding='same', activation='gelu'),
 
+    #bn
+	layers.BatchNormalization(),
+    layers.Activation('gelu'),
+
+    layers.MaxPooling2D(pool_size=(2, 2)),
+	
+	layers.Conv2D(128, (3,3), strides=(1,1), padding='same', activation='gelu'),
+	layers.Conv2D(128, (3,3), strides=(1,1), padding='same', activation='gelu'),
+    
+    #normalize
+    layers.BatchNormalization(),
+    layers.Activation('gelu'),
+
+	layers.MaxPooling2D(pool_size=(2, 2)),	
+	
+	layers.Conv2D(256, (3, 3), strides=(1, 1), padding='same',activation = 'gelu'),
+    layers.Conv2D(256, (3, 3), strides=(1, 1), padding='same',activation = 'gelu'),
+    layers.Conv2D(256, (3, 3), strides=(1, 1), padding='same',activation = 'gelu'),
+	
+    #bn
+    layers.BatchNormalization(),
+    layers.Activation('gelu'),
+
+    layers.MaxPool2D(pool_size=(2, 2)),
+
+	layers.Conv2D(512, (3, 3), strides=(1, 1), padding='same',activation = 'gelu'),
+    layers.Conv2D(512, (3, 3), strides=(1, 1), padding='same',activation = 'gelu'),
+    layers.Conv2D(512, (3, 3), strides=(1, 1), padding='same',activation = 'gelu'),
+    
+    #bn
+    layers.BatchNormalization(),
+    layers.Activation('gelu'),
+
+    layers.MaxPool2D(pool_size=(2, 2)),
+	
+	layers.Conv2D(512, (3, 3), strides=(1, 1), padding='same',activation = 'gelu'),
+    layers.Conv2D(512, (3, 3), strides=(1, 1), padding='same',activation = 'gelu'),
+    layers.Conv2D(512, (3, 3), strides=(1, 1), padding='same',activation = 'gelu'),
+
+    #bn
+    layers.BatchNormalization(),
+    layers.Activation('gelu'),
+
+    layers.MaxPool2D(pool_size=(2, 2)),
+	
+	layers.Flatten(),
+        #layers.Dense(4096, activation='gelu'),
+	#layers.Dropout(0.5),
+	
+        # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    tf.keras.layers.Dense(10)
+    ])
+    #model = tf.keras.Sequential()
+    #model.add(tf.keras.Input(shape=(32, 32, 3)))
+    #model.add()
+    #model = get_model('cifar_resnet110_v1', classes=10, pretrained=True)
     # Log the training hyper-parameters for WandB
     # If you change these in model.compile() or model.fit(), be sure to update them here.
     wandb.config = {
         #####################################
         # Edit these as desired
         # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-        "learning_rate": 0.001,
-        "optimizer": "adam",
-        "epochs": 5,
-        "batch_size": 32
+        "learning_rate": 0.0005,
+        "optimizer": "AdamW",
+        "epochs": 50,
+        "batch_size": 64
         # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     }
 
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=.001),
+        optimizer=tf.keras.optimizers.experimental.AdamW(learning_rate=.0005, weight_decay=0.004),
         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
     )
 
     history = model.fit(
         ds_cifar10_train,
-        epochs=5,
+        epochs=50,
         validation_data=ds_cifar10_test,
         callbacks=[WandbMetricsLogger()]
     )
