@@ -69,12 +69,12 @@ if __name__ == '__main__':
     ds_cifar10_train = ds_cifar10_train.map(normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
     ds_cifar10_train = ds_cifar10_train.cache()     # Cache data
     ds_cifar10_train = ds_cifar10_train.shuffle(ds_cifar10_info.splits['train'].num_examples)
-    ds_cifar10_train = ds_cifar10_train.batch(64)  # <<<<< To change batch size, you have to change it here
+    ds_cifar10_train = ds_cifar10_train.batch(128)  # <<<<< To change batch size, you have to change it here
     ds_cifar10_train = ds_cifar10_train.prefetch(tf.data.AUTOTUNE)
 
     # Prepare cifar10 test dataset
     ds_cifar10_test = ds_cifar10_test.map(normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
-    ds_cifar10_test = ds_cifar10_test.batch(64)    # <<<<< To change batch size, you have to change it here
+    ds_cifar10_test = ds_cifar10_test.batch(128)    # <<<<< To change batch size, you have to change it here
     ds_cifar10_test = ds_cifar10_test.cache()
     ds_cifar10_test = ds_cifar10_test.prefetch(tf.data.AUTOTUNE)
 
@@ -109,24 +109,50 @@ if __name__ == '__main__':
         #####################################
         # Edit these as desired
         # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-        "learning_rate": 0.001,
+        "learning_rate": 0.0005,
         "optimizer": "Adam",
-        "epochs": 50,
-        "batch_size": 64
+        "epochs": 100,
+        "batch_size": 128
         # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     }
+	#data_aug
+    aug_gen = ImageDataGenerator(
+        featurewise_center = False,
+	samplewise_center = False,
+	featurewise_std_normalization = False,
+	samplewise_std_normalization = False,
+	zca_whitening = False,
+	rotation_range = 0,
+	width_shift_range = 0.1,
+	height_shift_range = 0.1,
+	horizontal_flip = True,		
+        vertical_flip = False,		
+    )
+    aug_gen.fit(ds_cifar10_train)
+    gen = aug_gen.flow(ds_cifar10_train, batch_size=128)	
 
     model.compile(
-        optimizer=tf.keras.optimizers.experimental.Adam(learning_rate=.001),
+        optimizer=tf.keras.optimizers.experimental.Adam(learning_rate=.0005),
         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
     )
 
-    history = model.fit(
-        ds_cifar10_train,
-        epochs=50,
-        validation_data=ds_cifar10_test,
-        callbacks=[WandbMetricsLogger()]
+   # history = model.fit(
+   #     ds_cifar10_train,
+   #     epochs=100,
+   #     validation_data=ds_cifar10_test,
+   #     callbacks=[WandbMetricsLogger()]
+   # )
+
+	history = model.fit_generator(
+		generator=gen,
+		steps_per_epoch=50000//128,
+        	epochs=100,
+        	validation_data=ds_cifar10_test,
+        	callbacks=[WandbMetricsLogger()]
     )
+
+
+
 
     wandb.finish()
